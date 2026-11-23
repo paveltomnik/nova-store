@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="NOVA Wear — повседневная одежда для города.">
+  <title>NOVA Wear — одежда для города</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="app.js"></script>
+</head>
+<body id="top">
+  <p class="demo-banner">Демо-магазин из гайда BrainAid «Codex: команды и фишки». Заказы не отправляются, оплаты нет — не вводите настоящие данные.</p>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="wordmark" href="#top" aria-label="NOVA Wear, на главную">NOVA<span>WEAR</span></a>
+      <nav aria-label="Основная навигация"><a href="#catalog">Каталог</a></nav>
+      <button type="button" class="cart-toggle" id="open-cart" aria-haspopup="dialog">
+        <span class="bag" aria-hidden="true"></span>
+        Корзина <span class="cart-count" id="cart-count">0</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero" aria-labelledby="hero-title">
+      <img class="hero-image" src="assets/campaign.jpg" alt="" fetchpriority="high">
+      <div class="hero-content">
+        <p class="hero-label">Городская коллекция</p>
+        <h1 id="hero-title">Одежда<br>для города</h1>
+        <a class="button button-accent" href="#catalog">Смотреть каталог</a>
+      </div>
+    </section>
+
+    <section class="catalog" id="catalog" aria-labelledby="catalog-title">
+      <div class="catalog-heading">
+        <h2 id="catalog-title">Каталог</h2>
+        <p id="result-count" role="status"></p>
+      </div>
+      <details class="filters" id="filters" open>
+        <summary>Фильтры</summary>
+        <form id="filter-form" class="filter-row">
+          <label>Категория
+            <select id="category" name="category">
+              <option value="">Все категории</option>
+              <option value="tee">Футболки</option>
+              <option value="hoodie">Худи</option>
+              <option value="pants">Брюки</option>
+              <option value="outerwear">Верхняя одежда</option>
+            </select>
+          </label>
+          <label>Размер
+            <select id="filter-size" name="size">
+              <option value="">Все размеры</option>
+              <option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option>
+            </select>
+          </label>
+          <label>Цена до, ₽
+            <input id="max-price" name="maxPrice" type="number" min="0" step="1" inputmode="numeric" placeholder="Любая">
+          </label>
+          <button class="text-button" id="reset-filters" type="reset">Сбросить</button>
+        </form>
+      </details>
+      <div class="product-grid" id="products"></div>
+      <div class="empty-state" id="empty-catalog" hidden>
+        <h3>Товары не найдены</h3>
+        <p>Измените размер, категорию или цену.</p>
+        <button type="reset" form="filter-form" class="button button-outline">Сбросить фильтры</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-inner">
+      <a class="wordmark" href="#top" aria-label="NOVA Wear, наверх">NOVA<span>WEAR</span></a>
+      <p>Демо-магазин одежды</p>
+    </div>
+  </footer>
+
+  <dialog id="product-dialog" class="product-dialog" aria-labelledby="product-name">
+    <button class="close-button" type="button" data-close aria-label="Закрыть карточку" autofocus>×</button>
+    <div class="product-detail">
+      <img id="product-image" alt="">
+      <div class="detail-content">
+        <p class="muted" id="product-color"></p>
+        <h2 id="product-name"></h2>
+        <p class="detail-price" id="product-price"></p>
+        <p id="product-description"></p>
+        <form id="product-form" novalidate>
+          <fieldset>
+            <legend>Размер</legend>
+            <div class="size-options" id="product-sizes"></div>
+          </fieldset>
+          <p class="form-error" id="size-error" role="alert"></p>
+          <button type="submit" class="button button-dark full-width">В корзину</button>
+        </form>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="shop-dialog" class="shop-dialog" aria-label="Корзина и оформление заказа">
+    <button class="close-button" type="button" data-close aria-label="Закрыть" autofocus>×</button>
+    <section class="shop-panel" id="cart-panel" aria-labelledby="cart-title">
+      <h2 id="cart-title" tabindex="-1">Корзина</h2>
+      <p class="visually-hidden" id="cart-announcement" role="status"></p>
+      <div class="cart-empty" id="empty-cart">
+        <p>В корзине пока ничего нет.</p>
+        <button type="button" class="button button-outline" data-close>Продолжить покупки</button>
+      </div>
+      <ul class="cart-items" id="cart-items"></ul>
+      <div class="shop-total" id="cart-summary" hidden>
+        <p>Итого <strong id="cart-total"></strong></p>
+        <button class="button button-dark full-width" type="button" id="start-checkout">Оформить заказ</button>
+      </div>
+    </section>
+
+    <section class="shop-panel" id="checkout-panel" aria-labelledby="checkout-title" hidden>
+      <button class="text-button back-button" type="button" id="back-to-cart">В корзину</button>
+      <h2 id="checkout-title" tabindex="-1">Оформление заказа</h2>
+      <p class="muted">Это демо-заказ. Можно указать вымышленные данные.</p>
+      <form id="checkout-form" method="dialog">
+        <label>Имя
+          <input name="name" autocomplete="name" required maxlength="100" pattern=".*\S.*">
+        </label>
+        <label>Email
+          <input name="email" type="email" autocomplete="email" required maxlength="254">
+        </label>
+        <label>Адрес доставки
+          <input name="address" autocomplete="street-address" required maxlength="250" pattern=".*\S.*">
+        </label>
+        <div class="shop-total">
+          <p>Итого <strong id="checkout-total"></strong></p>
+          <button class="button button-dark full-width" type="submit">Оформить демо-заказ</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="shop-panel" id="confirmation-panel" aria-labelledby="confirmation-title" hidden>
+      <div class="confirmation-mark" aria-hidden="true">✓</div>
+      <h2 id="confirmation-title" tabindex="-1">Демо-заказ оформлен</h2>
+      <p class="muted">Сумма заказа <strong id="confirmed-total"></strong>. Оплата и доставка имитируются.</p>
+      <button type="button" class="button button-dark full-width" data-close>Вернуться к покупкам</button>
+    </section>
+  </dialog>
+  <div id="notification" class="notification" role="status" aria-atomic="true"></div>
+</body>
+</html>
