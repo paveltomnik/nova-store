@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="NOVA Wear — повседневная одежда для города.">
   <title>NOVA Wear — одежда для города</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="styles.css">
+  <script defer src="products.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body id="top">
@@ -13,16 +15,30 @@
   <header class="site-header">
     <div class="shell header-inner">
       <a class="wordmark" href="#top" aria-label="NOVA Wear, на главную">NOVA<span>WEAR</span></a>
-      <nav aria-label="Основная навигация"><a href="#catalog">Каталог</a></nav>
-      <button type="button" class="cart-toggle" id="open-cart" aria-haspopup="dialog">
-        <span class="bag" aria-hidden="true"></span>
-        Корзина <span class="cart-count" id="cart-count">0</span>
-      </button>
+      <nav id="main-nav" aria-label="Основная навигация">
+        <a href="#catalog">Каталог</a>
+        <a href="#catalog/women">Женское</a>
+        <a href="#catalog/men">Мужское</a>
+        <a href="#catalog/accessories">Аксессуары</a>
+        <a class="mobile-service-link" href="#delivery">Доставка</a>
+        <a class="mobile-service-link" href="#returns">Возврат</a>
+        <a class="mobile-service-link" href="#contacts">Контакты</a>
+      </nav>
+      <div class="header-actions">
+        <a href="#favorites" class="header-favorites" aria-label="Избранное">
+          <span aria-hidden="true">♡</span><span id="favorites-count" class="cart-count" hidden></span>
+        </a>
+        <button type="button" class="cart-toggle" id="open-cart" aria-haspopup="dialog" aria-label="Корзина, 0 товаров">
+          <span class="bag" aria-hidden="true"></span>
+          <span class="cart-label">Корзина</span> <span class="cart-count" id="cart-count">0</span>
+        </button>
+        <button type="button" class="menu-toggle" id="menu-toggle" aria-controls="main-nav" aria-expanded="false">Меню</button>
+      </div>
     </div>
   </header>
 
   <main class="shell">
-    <section class="hero" aria-labelledby="hero-title">
+    <section class="hero" id="hero" aria-labelledby="hero-title">
       <img class="hero-image" src="assets/campaign.jpg" alt="" fetchpriority="high">
       <div class="hero-content">
         <p class="hero-label">Городская коллекция</p>
@@ -33,26 +49,42 @@
 
     <section class="catalog" id="catalog" aria-labelledby="catalog-title">
       <div class="catalog-heading">
-        <h2 id="catalog-title">Каталог</h2>
+        <h2 id="catalog-title" tabindex="-1">Каталог</h2>
         <p id="result-count" role="status"></p>
+      </div>
+      <nav class="section-nav" aria-label="Разделы каталога">
+        <a href="#catalog">Все товары</a>
+        <a href="#catalog/women">Женское</a>
+        <a href="#catalog/men">Мужское</a>
+        <a href="#catalog/accessories">Аксессуары</a>
+      </nav>
+      <div class="catalog-tools">
+        <label>Поиск по каталогу
+          <input id="catalog-search" type="search" placeholder="Название, категория или цвет">
+        </label>
+        <label>Сортировка
+          <select id="sort-order">
+            <option value="featured">По умолчанию</option>
+            <option value="price-asc">Сначала дешевле</option>
+            <option value="price-desc">Сначала дороже</option>
+            <option value="name">По названию</option>
+          </select>
+        </label>
       </div>
       <details class="filters" id="filters" open>
         <summary>Фильтры</summary>
         <form id="filter-form" class="filter-row">
           <label>Категория
-            <select id="category" name="category">
-              <option value="">Все категории</option>
-              <option value="tee">Футболки</option>
-              <option value="hoodie">Худи</option>
-              <option value="pants">Брюки</option>
-              <option value="outerwear">Верхняя одежда</option>
-            </select>
+            <select id="category" name="category"></select>
           </label>
           <label>Размер
-            <select id="filter-size" name="size">
-              <option value="">Все размеры</option>
-              <option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option>
-            </select>
+            <select id="filter-size" name="size"></select>
+          </label>
+          <label>Цвет
+            <select id="filter-color" name="color"></select>
+          </label>
+          <label>Цена от, ₽
+            <input id="min-price" name="minPrice" type="number" min="0" step="1" inputmode="numeric" placeholder="Любая">
           </label>
           <label>Цена до, ₽
             <input id="max-price" name="maxPrice" type="number" min="0" step="1" inputmode="numeric" placeholder="Любая">
@@ -63,39 +95,67 @@
       <div class="product-grid" id="products"></div>
       <div class="empty-state" id="empty-catalog" hidden>
         <h3>Товары не найдены</h3>
-        <p>Измените размер, категорию или цену.</p>
-        <button type="reset" form="filter-form" class="button button-outline">Сбросить фильтры</button>
+        <p>Измените запрос или параметры поиска.</p>
+        <button type="button" id="clear-catalog" class="button button-outline">Очистить поиск и фильтры</button>
       </div>
+    </section>
+    <section class="product-page" id="product-page" hidden aria-labelledby="product-name">
+      <a class="back-link" id="product-back" href="#catalog">К каталогу</a>
+      <div class="product-detail">
+        <img id="product-image" width="640" height="800" alt="">
+        <div class="detail-content">
+          <p class="muted" id="product-section"></p>
+          <h1 id="product-name" tabindex="-1"></h1>
+          <p class="detail-price" id="product-price"></p>
+          <p id="product-description"></p>
+          <fieldset class="color-field">
+            <legend>Цвет</legend>
+            <div class="color-options" id="product-colors"></div>
+          </fieldset>
+          <form id="product-form" novalidate>
+            <fieldset>
+              <legend>Размер</legend>
+              <div class="size-options" id="product-sizes"></div>
+            </fieldset>
+            <p class="form-error" id="size-error" role="alert"></p>
+            <div class="product-actions">
+              <button type="submit" class="button button-dark full-width">В корзину</button>
+              <button type="button" class="button button-outline detail-favorite" id="product-favorite"></button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <section class="related" aria-labelledby="related-title">
+        <h2 id="related-title">Похожие товары</h2>
+        <div class="product-grid" id="related-products"></div>
+      </section>
+    </section>
+    <section class="catalog" id="favorites" aria-labelledby="favorites-title" hidden>
+      <div class="catalog-heading"><h2 id="favorites-title" tabindex="-1">Избранное</h2></div>
+      <div class="product-grid" id="favorite-products"></div>
+      <div class="empty-state" id="empty-favorites">
+        <h3>В избранном пока пусто</h3>
+        <p>Нажмите на сердечко рядом с товаром, чтобы сохранить его.</p>
+        <a class="button button-outline" href="#catalog">Перейти в каталог</a>
+      </div>
+    </section>
+    <section class="info-page" id="info-page" hidden aria-labelledby="info-title">
+      <a class="back-link" href="#catalog">К каталогу</a>
+      <h1 id="info-title" tabindex="-1"></h1>
+      <div id="info-content"></div>
     </section>
   </main>
 
   <footer class="site-footer">
     <div class="shell footer-inner">
-      <a class="wordmark" href="#top" aria-label="NOVA Wear, наверх">NOVA<span>WEAR</span></a>
-      <p>Демо-магазин одежды</p>
+      <a class="wordmark" href="#top" aria-label="NOVA Wear, на главную">NOVA<span>WEAR</span></a>
+      <nav class="footer-nav" aria-label="Информация о магазине">
+        <a href="#delivery">Доставка</a>
+        <a href="#returns">Возврат</a>
+        <a href="#contacts">Контакты</a>
+      </nav>
     </div>
   </footer>
-
-  <dialog id="product-dialog" class="product-dialog" aria-labelledby="product-name">
-    <button class="close-button" type="button" data-close aria-label="Закрыть карточку" autofocus>×</button>
-    <div class="product-detail">
-      <img id="product-image" alt="">
-      <div class="detail-content">
-        <p class="muted" id="product-color"></p>
-        <h2 id="product-name"></h2>
-        <p class="detail-price" id="product-price"></p>
-        <p id="product-description"></p>
-        <form id="product-form" novalidate>
-          <fieldset>
-            <legend>Размер</legend>
-            <div class="size-options" id="product-sizes"></div>
-          </fieldset>
-          <p class="form-error" id="size-error" role="alert"></p>
-          <button type="submit" class="button button-dark full-width">В корзину</button>
-        </form>
-      </div>
-    </div>
-  </dialog>
 
   <dialog id="shop-dialog" class="shop-dialog" aria-label="Корзина и оформление заказа">
     <button class="close-button" type="button" data-close aria-label="Закрыть" autofocus>×</button>
@@ -108,7 +168,19 @@
       </div>
       <ul class="cart-items" id="cart-items"></ul>
       <div class="shop-total" id="cart-summary" hidden>
-        <p>Итого <strong id="cart-total"></strong></p>
+        <form id="promo-form" class="promo-form">
+          <label>Промокод
+            <input id="promo-code" type="text" maxlength="24" autocapitalize="characters" spellcheck="false" placeholder="NOVA10" aria-describedby="promo-message">
+          </label>
+          <button class="button button-outline" type="submit">Применить</button>
+        </form>
+        <div class="promo-feedback">
+          <span class="muted" id="promo-message" role="status">NOVA10 даёт скидку 10% на товары.</span>
+          <button id="remove-promo" class="text-button" type="button" hidden>Убрать</button>
+        </div>
+        <p>Товары <strong id="cart-subtotal"></strong></p>
+        <p id="cart-discount-row" hidden>Скидка <strong id="cart-discount"></strong></p>
+        <p>Итого без доставки <strong id="cart-total"></strong></p>
         <button class="button button-dark full-width" type="button" id="start-checkout">Оформить заказ</button>
       </div>
     </section>
@@ -124,11 +196,23 @@
         <label>Email
           <input name="email" type="email" autocomplete="email" required maxlength="254">
         </label>
+        <label>Город
+          <select name="city" id="delivery-city" autocomplete="address-level2" required></select>
+        </label>
+        <label id="custom-city-row" hidden>Название города
+          <input name="customCity" id="custom-city" autocomplete="address-level2" maxlength="80" pattern=".*\S.*" disabled>
+        </label>
+        <label>Способ доставки
+          <select name="method" id="delivery-method" required></select>
+        </label>
         <label>Адрес доставки
           <input name="address" autocomplete="street-address" required maxlength="250" pattern=".*\S.*">
         </label>
         <div class="shop-total">
-          <p>Итого <strong id="checkout-total"></strong></p>
+          <p>Товары <strong id="checkout-subtotal"></strong></p>
+          <p id="checkout-discount-row" hidden>Скидка <strong id="checkout-discount"></strong></p>
+          <p>Доставка <strong id="checkout-delivery" aria-live="polite"></strong></p>
+          <p>Итого <strong id="checkout-total" aria-live="polite"></strong></p>
           <button class="button button-dark full-width" type="submit">Оформить демо-заказ</button>
         </div>
       </form>
